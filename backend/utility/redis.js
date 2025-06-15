@@ -1,6 +1,6 @@
 // utility/redis.js
-import Redis from 'ioredis';
-import dotenv from 'dotenv';
+const Redis = require('ioredis');
+const dotenv = require('dotenv');
 
 dotenv.config();
 
@@ -28,4 +28,4 @@ redis.on('error', (err) => {
     console.error('❌ Redis error:', err.message);
 });
 
-export default redis;
+module.exports= redis;
