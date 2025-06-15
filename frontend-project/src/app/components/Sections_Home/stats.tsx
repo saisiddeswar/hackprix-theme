@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
 import { motion, useInView, useAnimation } from 'framer-motion';
-import { Rocket, Zap, BarChart2, DollarSign, Users, Award } from 'lucide-react';
+import { Rocket, DollarSign, Users, Award } from 'lucide-react';
 
 interface StatItem {
   id: string;
@@ -64,7 +64,6 @@ const StatsSection = () => {
   const isInView = useInView(sectionRef, { once: true });
   const controls = useAnimation();
 
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -77,8 +76,8 @@ const StatsSection = () => {
   };
 
   const itemVariants = {
-    hidden: { 
-      opacity: 0, 
+    hidden: {
+      opacity: 0,
       y: 50,
       scale: 0.8
     },
@@ -103,50 +102,43 @@ const StatsSection = () => {
     }
   };
 
-  // Counter animation with easing
-  const animateCounter = (item: StatItem, duration: number = 2000) => {
-    let startTimestamp: number | null = null;
-    const startValue = 0;
-    const targetValue = item.targetValue;
-    
-    const step = (timestamp: number) => {
-      if (!startTimestamp) startTimestamp = timestamp;
-      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-      const easedProgress = easeOutQuad(progress);
-      const currentValue = Math.floor(easedProgress * targetValue);
-      
-      setStats(prevStats => 
-        prevStats.map(stat => 
-          stat.id === item.id 
-            ? { ...stat, value: currentValue }
-            : stat
-        )
-      );
-      
-      if (progress < 1) {
-        window.requestAnimationFrame(step);
-      }
-    };
-    
-    window.requestAnimationFrame(step);
-  };
+  const easeOutQuad = (t: number) => t * (2 - t);
 
-  // Easing function for smooth counting
-  const easeOutQuad = (t: number) => {
-    return t * (2 - t);
-  };
-
-  // Start animations when in view
   useEffect(() => {
     if (isInView) {
       controls.start('visible');
-      
-      // Start counter animations with staggered delays
+
+      const animateCounter = (item: StatItem, duration: number = 2000) => {
+        let startTimestamp: number | null = null;
+        const targetValue = item.targetValue;
+
+        const step = (timestamp: number) => {
+          if (!startTimestamp) startTimestamp = timestamp;
+          const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+          const easedProgress = easeOutQuad(progress);
+          const currentValue = Math.floor(easedProgress * targetValue);
+
+          setStats(prevStats =>
+            prevStats.map(stat =>
+              stat.id === item.id
+                ? { ...stat, value: currentValue }
+                : stat
+            )
+          );
+
+          if (progress < 1) {
+            window.requestAnimationFrame(step);
+          }
+        };
+
+        window.requestAnimationFrame(step);
+      };
+
       stats.forEach((stat, index) => {
         setTimeout(() => animateCounter(stat, 1800), index * 300);
       });
     }
-  }, [isInView, controls]);
+  }, [isInView, controls, stats]);
 
   const formatValue = (stat: StatItem) => {
     if (stat.prefix) {
@@ -157,7 +149,6 @@ const StatsSection = () => {
 
   return (
     <section className="relative py-20 bg-gray-50 overflow-hidden">
-      {/* Decorative background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-100 rounded-full opacity-20 blur-3xl"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-100 rounded-full opacity-20 blur-3xl"></div>
@@ -165,19 +156,18 @@ const StatsSection = () => {
       </div>
 
       <div className="container mx-auto px-4 relative z-10" ref={sectionRef}>
-        {/* Section Header */}
-        <motion.div 
+        <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: -30 }}
           animate={controls}
           variants={{
-            visible: { 
-              opacity: 1, 
-              y: 0, 
-              transition: { 
+            visible: {
+              opacity: 1,
+              y: 0,
+              transition: {
                 duration: 0.6,
                 ease: "easeOut"
-              } 
+              }
             }
           }}
         >
@@ -191,8 +181,7 @@ const StatsSection = () => {
           </p>
         </motion.div>
 
-        {/* Stats Grid */}
-        <motion.div 
+        <motion.div
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
           variants={containerVariants}
           initial="hidden"
@@ -205,16 +194,12 @@ const StatsSection = () => {
               whileHover="hover"
               className="group relative"
             >
-              {/* Glowing border effect */}
               <div className={`absolute inset-0 rounded-2xl ${stat.color.split(' ')[0]} ${stat.color.split(' ')[1]} opacity-0 group-hover:opacity-20 blur-md transition-opacity duration-300`}></div>
-              
-              {/* Stat card */}
+
               <div className="relative bg-white rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300 p-8 text-center border border-gray-100 overflow-hidden">
-                {/* Gradient overlay on hover */}
                 <div className={`absolute inset-0 ${stat.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
-                
-                {/* Icon with floating animation */}
-                <motion.div 
+
+                <motion.div
                   className={`flex items-center justify-center w-16 h-16 mx-auto mb-6 rounded-full ${stat.color} text-white`}
                   animate={isInView ? {
                     y: [0, -10, 0],
@@ -230,12 +215,11 @@ const StatsSection = () => {
                   {stat.icon}
                 </motion.div>
 
-                {/* Animated counter */}
-                <motion.div 
+                <motion.div
                   className={`text-5xl font-bold mb-2 font-['Poppins'] ${stat.id === 'funding' ? 'text-pink-600' : stat.id === 'startups' ? 'text-purple-600' : stat.id === 'investors' ? 'text-blue-600' : 'text-teal-600'}`}
                   initial={{ scale: 0.8, opacity: 0 }}
-                  animate={isInView ? { 
-                    scale: 1, 
+                  animate={isInView ? {
+                    scale: 1,
                     opacity: 1,
                     transition: {
                       type: "spring",
@@ -246,52 +230,32 @@ const StatsSection = () => {
                 >
                   {formatValue(stat)}
                 </motion.div>
-                
+
                 <h3 className="text-lg font-semibold text-gray-800 mb-2 font-['Inter']">
                   {stat.label}
                 </h3>
-                
+
                 <p className="text-sm text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-['Inter']">
                   {stat.description}
                 </p>
-
-                {/* Floating particles */}
-                {[...Array(3)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    className={`absolute ${i === 0 ? 'top-2 left-2 w-1 h-1' : i === 1 ? 'bottom-4 right-4 w-2 h-2' : 'top-6 right-6 w-1.5 h-1.5'} rounded-full ${stat.id === 'funding' ? 'bg-pink-300' : stat.id === 'startups' ? 'bg-purple-300' : stat.id === 'investors' ? 'bg-blue-300' : 'bg-teal-300'} opacity-0 group-hover:opacity-100`}
-                    initial={{ scale: 0 }}
-                    animate={isInView ? {
-                      scale: [0, 1, 0.5, 1],
-                      opacity: [0, 1, 1, 0],
-                      transition: {
-                        duration: 4,
-                        delay: index * 0.1 + i * 0.3,
-                        repeat: Infinity,
-                        repeatDelay: 5
-                      }
-                    } : {}}
-                  />
-                ))}
               </div>
             </motion.div>
           ))}
         </motion.div>
 
-        {/* Bottom CTA */}
-        <motion.div 
+        <motion.div
           className="text-center mt-20"
           initial={{ opacity: 0, y: 30 }}
           animate={controls}
           variants={{
-            visible: { 
-              opacity: 1, 
-              y: 0, 
-              transition: { 
-                duration: 0.6, 
+            visible: {
+              opacity: 1,
+              y: 0,
+              transition: {
+                duration: 0.6,
                 delay: 1.5,
                 ease: "easeOut"
-              } 
+              }
             }
           }}
         >
@@ -300,7 +264,7 @@ const StatsSection = () => {
           </p>
           <motion.button
             className="relative bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group font-['Inter']"
-            whileHover={{ 
+            whileHover={{
               scale: 1.05,
               boxShadow: "0 10px 25px rgba(139, 92, 246, 0.3)"
             }}
@@ -308,10 +272,10 @@ const StatsSection = () => {
           >
             <span className="relative z-10 flex items-center">
               Get Started Now
-              <svg 
-                className="w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-1" 
-                fill="none" 
-                stroke="currentColor" 
+              <svg
+                className="w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-1"
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -322,19 +286,12 @@ const StatsSection = () => {
         </motion.div>
       </div>
 
-      {/* Custom CSS for animations */}
       <style jsx>{`
         @keyframes spin-slow {
-          from {
-            transform: translate(-50%, -50%) rotate(0deg);
-          }
-          to {
-            transform: translate(-50%, -50%) rotate(360deg);
-          }
+          from { transform: translate(-50%, -50%) rotate(0deg); }
+          to { transform: translate(-50%, -50%) rotate(360deg); }
         }
-        .animate-spin-slow {
-          animation: spin-slow 20s linear infinite;
-        }
+        .animate-spin-slow { animation: spin-slow 20s linear infinite; }
       `}</style>
     </section>
   );
